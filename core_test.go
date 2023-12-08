@@ -115,18 +115,6 @@ func TestBuildTabHead(t *testing.T) {
 	t.Log("success")
 }
 
-func Test_calcColIndex(t *testing.T) {
-	//生成树
-	headers, err := buildHeaders[Student]()
-	if err != nil {
-		t.Fatalf("%s", err.Error())
-	}
-	for i := 0; i < len(headers); i++ {
-		colIndex := calcColIndex(headers[i], "名字")
-		t.Logf("colIndex=%d", colIndex)
-	}
-}
-
 func w(s []School) {
 
 }
