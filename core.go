@@ -192,13 +192,16 @@ func BuildTabHead[T any]() ([]*Header, error) {
 		}
 	}
 
+	lastLeafNode := 0
+
 	for i := 0; i < len(headers); i++ {
 		//设置树的深度
 		setDepth(headers[i], maxDepthVal)
 		//设置叶子节点数
 		maxLeafNode(headers[i])
 		//设置单元格的列坐标
-		setColIndex(headers[i], i)
+		//setColIndex(headers[i], i)
+		lastLeafNode = setColIndex(headers[i], lastLeafNode)
 	}
 
 	return headers, nil
@@ -386,20 +389,44 @@ func setDepth(tree *Header, maxDepth int) {
 }
 
 // 设置colIndex
-func setColIndex(tree *Header, startColIndex int) {
-
+func setColIndex(tree *Header, startColIndex int) int {
 	tree.ColIndex = startColIndex
-	log.Println(tree.Content, " ", tree.LeafNode)
+
+	//前面存在的兄弟节点中存在有子树的
+	//brotherHasChild := false
+	brotherHasChildSum := 0
 
 	if tree.HasChildren {
 		for i := 0; i < len(tree.Children); i++ {
-			if tree.Children[i].HasChildren {
-				setColIndex(&tree.Children[i], startColIndex+i)
+
+			if i == 0 {
+				setColIndex(&tree.Children[i], tree.ColIndex+i)
 			} else {
-				setColIndex(&tree.Children[i], startColIndex+i)
+
+				if tree.Children[i-1].HasChildren {
+					brotherHasChildSum += tree.Children[i-1].LeafNode - 1
+				}
+
+				if brotherHasChildSum > 0 {
+					setColIndex(&tree.Children[i], tree.ColIndex+i+brotherHasChildSum)
+				} else {
+					setColIndex(&tree.Children[i], tree.ColIndex+i)
+				}
 			}
 		}
-	} else {
-
 	}
+
+	log.Println(tree.Content, " LeafNode=", tree.LeafNode, " colIndex=", tree.ColIndex, "   startColIndex", startColIndex)
+	return startColIndex + tree.LeafNode
+}
+
+func calcColIndex(tree *Header, fieldName string) int {
+	//colIndex := 0
+	//
+	//if tree.HasChildren {
+	//	for i := 0; i < len(tree.Children); i++ {
+	//		colIndex = calcColIndex(&tree.Children[i], fieldName) + tree.ColIndex
+	//	}
+	//}
+	return 0
 }

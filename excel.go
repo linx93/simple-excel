@@ -21,10 +21,9 @@ func writeHeader(file *excelize.File, h Header) error {
 		return fmt.Errorf("坐标转换失败:row=%d,col=%d,err:%s", h.TreeLayer+1, h.ColIndex+1, err.Error())
 	}
 
-	cell_ := ""
-
 	file.SetCellValue("Sheet1", cell, h.Content)
 
+	cell_ := ""
 	//有子节点就需要横向合并单元格
 	if h.HasChildren {
 		cell_, err = excelize.CoordinatesToCellName(h.ColIndex+h.LeafNode, h.TreeLayer+1)

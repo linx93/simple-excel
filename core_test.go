@@ -49,12 +49,15 @@ func Test_buildHeaders(t *testing.T) {
 		}
 	}
 
+	lastLeafNode := 0
+
 	for i := 0; i < len(headers); i++ {
 		//设置叶子节点数
 		setDepth(headers[i], maxDepthVal)
 		maxLeafNode(headers[i])
-		setColIndex(headers[i], i)
-		t.Logf("%#v\n", headers[i])
+		lastLeafNode = setColIndex(headers[i], lastLeafNode)
+		//t.Logf("%#v\n", headers[i])
+		t.Logf("lastLeafNode=%v\n", lastLeafNode)
 	}
 
 }
@@ -107,7 +110,19 @@ func TestBuildTabHead(t *testing.T) {
 			log.Fatalf(err1.Error())
 		}
 	}
-	f.SaveAs("./linx96.xlsx")
+	f.SaveAs("./linx38.xlsx")
 
 	t.Log("success")
+}
+
+func Test_calcColIndex(t *testing.T) {
+	//生成树
+	headers, err := buildHeaders[Student]()
+	if err != nil {
+		t.Fatalf("%s", err.Error())
+	}
+	for i := 0; i < len(headers); i++ {
+		colIndex := calcColIndex(headers[i], "名字")
+		t.Logf("colIndex=%d", colIndex)
+	}
 }
