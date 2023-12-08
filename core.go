@@ -419,14 +419,3 @@ func setColIndex(tree *Header, startColIndex int) int {
 	log.Println(tree.Content, " LeafNode=", tree.LeafNode, " colIndex=", tree.ColIndex, "   startColIndex", startColIndex)
 	return startColIndex + tree.LeafNode
 }
-
-func calcColIndex(tree *Header, fieldName string) int {
-	//colIndex := 0
-	//
-	//if tree.HasChildren {
-	//	for i := 0; i < len(tree.Children); i++ {
-	//		colIndex = calcColIndex(&tree.Children[i], fieldName) + tree.ColIndex
-	//	}
-	//}
-	return 0
-}
