@@ -176,11 +176,13 @@ func ss() []Header {
 	return hs
 }
 
-func BuildTabHead[T any]() ([]*Header, error) {
+func BuildTabHead[T any]() ([]*Header, *Cols, error) {
+
+	cs := Cols{}
 	//生成树
 	headers, err := buildHeaders[T]()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	//设置深度
@@ -192,6 +194,7 @@ func BuildTabHead[T any]() ([]*Header, error) {
 		}
 	}
 
+	leafNodeMap := make(map[string]int, 0)
 	lastLeafNode := 0
 
 	for i := 0; i < len(headers); i++ {
@@ -200,11 +203,13 @@ func BuildTabHead[T any]() ([]*Header, error) {
 		//设置叶子节点数
 		maxLeafNode(headers[i])
 		//设置单元格的列坐标
-		//setColIndex(headers[i], i)
-		lastLeafNode = setColIndex(headers[i], lastLeafNode)
+		lastLeafNode, leafNodeMap = setColIndex(headers[i], lastLeafNode, leafNodeMap)
 	}
 
-	return headers, nil
+	cs.MaxTreeDepth = maxDepthVal
+	cs.LeafNodes = leafNodeMap
+
+	return headers, &cs, nil
 }
 
 func buildXlsxTag(xlsxTag *XlsxTag, tf reflect.Type) error {
@@ -291,8 +296,7 @@ func buildHeaders[T any]() ([]*Header, error) {
 	return headers, nil
 }
 
-// 生成树
-func buildHeader(field reflect.StructField, pFieldName string, pTreeLayer int) (*Header, error) {
+func buildXlsxTagByStructField(field reflect.StructField) (*XlsxTag, error) {
 	tag, ok := field.Tag.Lookup(XLSX)
 	if !ok || tag == "-" || tag == "" {
 		//跳过
@@ -301,6 +305,16 @@ func buildHeader(field reflect.StructField, pFieldName string, pTreeLayer int) (
 
 	xlsxTag := &XlsxTag{}
 	err := matchTag(xlsxTag, tag)
+	if err != nil {
+		return nil, err
+	}
+
+	return xlsxTag, nil
+}
+
+// 生成树
+func buildHeader(field reflect.StructField, pFieldName string, pTreeLayer int) (*Header, error) {
+	xlsxTag, err := buildXlsxTagByStructField(field)
 	if err != nil {
 		return nil, err
 	}
@@ -389,18 +403,23 @@ func setDepth(tree *Header, maxDepth int) {
 }
 
 // 设置colIndex
-func setColIndex(tree *Header, startColIndex int) int {
+func setColIndex(tree *Header, startColIndex int, leafNodeMap map[string]int) (int, map[string]int) {
 	tree.ColIndex = startColIndex
 
 	//前面存在的兄弟节点中存在有子树的
 	//brotherHasChild := false
 	brotherHasChildSum := 0
 
+	//leafNodeMap是叶子节点集 key是fieldName => value是colIndex
+	if !tree.HasChildren {
+		leafNodeMap[tree.FieldName] = tree.ColIndex
+	}
+
 	if tree.HasChildren {
 		for i := 0; i < len(tree.Children); i++ {
 
 			if i == 0 {
-				setColIndex(&tree.Children[i], tree.ColIndex+i)
+				setColIndex(&tree.Children[i], tree.ColIndex+i, leafNodeMap)
 			} else {
 
 				if tree.Children[i-1].HasChildren {
@@ -408,14 +427,14 @@ func setColIndex(tree *Header, startColIndex int) int {
 				}
 
 				if brotherHasChildSum > 0 {
-					setColIndex(&tree.Children[i], tree.ColIndex+i+brotherHasChildSum)
+					setColIndex(&tree.Children[i], tree.ColIndex+i+brotherHasChildSum, leafNodeMap)
 				} else {
-					setColIndex(&tree.Children[i], tree.ColIndex+i)
+					setColIndex(&tree.Children[i], tree.ColIndex+i, leafNodeMap)
 				}
 			}
 		}
 	}
 
-	log.Println(tree.Content, " LeafNode=", tree.LeafNode, " colIndex=", tree.ColIndex, "   startColIndex", startColIndex)
-	return startColIndex + tree.LeafNode
+	//log.Println(tree.Content, " LeafNode=", tree.LeafNode, " colIndex=", tree.ColIndex, "   startColIndex", startColIndex)
+	return startColIndex + tree.LeafNode, leafNodeMap
 }

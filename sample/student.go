@@ -1,11 +1,4 @@
-package simple_excel
-
-import (
-	"fmt"
-	"github.com/xuri/excelize/v2"
-	"log"
-	"testing"
-)
+package sample
 
 type Student struct {
 	Hobby  Hobby  `json:"hobby" xlsx:"head:爱好;headCol:2"` //爱好
@@ -55,28 +48,4 @@ type Choose struct {
 type ChooseModernHistory struct {
 	ModernChineseHistory string `json:"modernChineseHistory" xlsx:"head:中国近代史"`
 	ModernWorldHistory   string `json:"modernWorldHistory" xlsx:"head:世界近代史"`
-}
-
-func Test_write(t *testing.T) {
-	f := excelize.NewFile()
-	defer func() {
-		if err := f.Close(); err != nil {
-			fmt.Println(err)
-		}
-	}()
-	for _, h := range ss() {
-		err := writeHeader(f, h)
-		if err != nil {
-			log.Fatalf(err.Error())
-		}
-	}
-
-	//stu := Student{}
-	//tf := reflect.TypeOf(stu)
-	//for i := 0; i < tf.NumField(); i++ {
-	//	tf.f
-	//}
-	f.SaveAs("./linx17.xlsx")
-
-	t.Log("success")
 }

@@ -1,4 +1,4 @@
-package simple_excel
+package sample
 
 type School struct {
 	SType string `xlsx:"head:学校类型"`

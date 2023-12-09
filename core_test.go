@@ -2,6 +2,7 @@ package simple_excel
 
 import (
 	"fmt"
+	"github.com/linx93/simple-excel/sample"
 	"github.com/xuri/excelize/v2"
 	"log"
 	"reflect"
@@ -9,7 +10,7 @@ import (
 )
 
 func Test_buildHeader(t *testing.T) {
-	student := Student{}
+	student := sample.Student{}
 
 	tf := reflect.TypeOf(student)
 
@@ -35,7 +36,7 @@ func Test_buildHeader(t *testing.T) {
 func Test_buildHeaders(t *testing.T) {
 
 	//生成树
-	headers, err := buildHeaders[Student]()
+	headers, err := buildHeaders[sample.Student]()
 	if err != nil {
 		t.Fatalf("%s", err.Error())
 	}
@@ -50,20 +51,21 @@ func Test_buildHeaders(t *testing.T) {
 	}
 
 	lastLeafNode := 0
-
+	leafNodeMap := make(map[string]int, 0)
 	for i := 0; i < len(headers); i++ {
 		//设置叶子节点数
 		setDepth(headers[i], maxDepthVal)
 		maxLeafNode(headers[i])
-		lastLeafNode = setColIndex(headers[i], lastLeafNode)
+		lastLeafNode, leafNodeMap = setColIndex(headers[i], lastLeafNode, leafNodeMap)
 		//t.Logf("%#v\n", headers[i])
 		t.Logf("lastLeafNode=%v\n", lastLeafNode)
+		t.Logf("leafNodeMap=%v\n", leafNodeMap)
 	}
 
 }
 
 func Test_maxDepth(t *testing.T) {
-	headers, err := buildHeaders[Student]()
+	headers, err := buildHeaders[sample.Student]()
 	if err != nil {
 		t.Fatalf("%s", err.Error())
 	}
@@ -74,7 +76,7 @@ func Test_maxDepth(t *testing.T) {
 }
 
 func Test_maxLeafNode(t *testing.T) {
-	headers, err := buildHeaders[Student]()
+	headers, err := buildHeaders[sample.Student]()
 	if err != nil {
 		t.Fatalf("%s", err.Error())
 	}
@@ -88,7 +90,7 @@ func Test_maxLeafNode(t *testing.T) {
 }
 
 func TestBuildTabHead(t *testing.T) {
-	tabHead, err := BuildTabHead[Student]()
+	tabHead, _, err := BuildTabHead[sample.Student]()
 	if err != nil {
 		t.Fatalf("%s", err.Error())
 	}
@@ -110,11 +112,7 @@ func TestBuildTabHead(t *testing.T) {
 			log.Fatalf(err1.Error())
 		}
 	}
-	f.SaveAs("./school.xlsx")
+	f.SaveAs("./linx35.xlsx")
 
 	t.Log("success")
-}
-
-func w(s []School) {
-
 }
