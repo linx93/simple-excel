@@ -46,10 +46,10 @@ func TestCreateTab(t *testing.T) {
 				Chemical: "80",
 				Biology:  "80",
 			},
-			Chinese: "60",
-			Math:    "100",
-			English: "0",
-			CompSub1: sample.CompSub1{
+			Chinese:  "60",
+			Math:     "100",
+			English:  "0",
+			CompSub1: sample.CompSub1{}, /*sample.CompSub1{
 				Politics: "40",
 				Choose: sample.Choose{
 					ChooseA: "40",
@@ -62,15 +62,15 @@ func TestCreateTab(t *testing.T) {
 				},
 				History:   "40",
 				Geography: "80",
-			},
-			GymClass: "80",
+			},*/
+			//GymClass: "80",
 		},
 		Height: 170,
 	}
 
 	stus := []sample.Student{stu, stu, stu, stu, stu, stu, stu, stu, stu, stu, stu, stu}
 
-	err := CreateTab[sample.Student]("./linx-student2.xlsx", stus)
+	err := CreateTab[sample.Student]("./linx-student9.xlsx", stus)
 	if err != nil {
 		t.Fatalf("CreateTab失败:%s", err.Error())
 	}

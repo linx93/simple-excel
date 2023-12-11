@@ -30,7 +30,10 @@ const (
 	cols     = "cols"
 )
 
-var ModelErr = fmt.Errorf("模型定义异常")
+var (
+	ModelErr  = fmt.Errorf("模型定义异常")
+	ignoreErr = fmt.Errorf("字段忽略")
+)
 
 type Header struct {
 	Content     string   `json:"content"`     //表头的单元格内容
@@ -319,7 +322,7 @@ func buildHeader(field reflect.StructField, pFieldName string, pTreeLayer int) (
 		return nil, err
 	}
 
-	if xlsxTag.Ignore == true {
+	if xlsxTag.Ignore {
 		//跳过
 		return nil, nil
 	}
@@ -341,6 +344,11 @@ func buildHeader(field reflect.StructField, pFieldName string, pTreeLayer int) (
 				log.Printf("构建头失败:%s\n", err1.Error())
 				return nil, err1
 			}
+
+			if children == nil {
+				continue
+			}
+
 			h.Children = append(h.Children, *children)
 		}
 

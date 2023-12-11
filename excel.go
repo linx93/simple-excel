@@ -30,7 +30,7 @@ type Cols struct {
 func (cs Cols) getCell(fieldName string, dataRow int) (string, error) {
 	colIndex, ok := cs.LeafNodes[fieldName]
 	if !ok {
-		return "", fmt.Errorf("获取叶子节点的列索引错误: 字段名:%v", fieldName)
+		return "", nil
 	}
 
 	cell, err := excelize.CoordinatesToCellName(colIndex+1, cs.MaxTreeDepth+dataRow+1)
@@ -47,9 +47,11 @@ func (cs Cols) setCell(f *excelize.File, fieldName string, dataRow int, val any)
 		return err
 	}
 
-	err = f.SetCellValue("Sheet1", cell, val)
-	if err != nil {
-		return err
+	if cell != "" {
+		err = f.SetCellValue("Sheet1", cell, val)
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil
@@ -188,30 +190,29 @@ func fullData[T any](file *excelize.File, cols *Cols, rows []T) error {
 
 // 递归写入
 func full(file *excelize.File, cols *Cols, index int, rs reflect.StructField, rv reflect.Value) error {
+	//xlsxTag, err := buildXlsxTagByStructField(rs)
+	//if err != nil {
+	//	return err
+	//}
+	//
+	//if xlsxTag.Ignore {
+	//	return nil
+	//}
+
 	if rs.Type.Kind() == reflect.Struct {
 		for i := 0; i < rs.Type.NumField(); i++ {
-
 			err := full(file, cols, index, rs.Type.Field(i), rv.Field(i))
 			if err != nil {
 				return err
 			}
 		}
-	} else {
+	}
 
-		xlsxTag, err := buildXlsxTagByStructField(rs)
-		if err != nil {
-			return err
-		}
+	//log.Println("name=", rs.Name, "   value=", rv, "    ignore=", xlsxTag.Ignore)
 
-		//log.Println("name=", rs.Name, "   value=", rv, "    ignore=", xlsxTag.Ignore)
-
-		if !xlsxTag.Ignore {
-			err = cols.setCell(file, rs.Name, index, rv)
-			if err != nil {
-				return err
-			}
-		}
-
+	err := cols.setCell(file, rs.Name, index, rv)
+	if err != nil {
+		return err
 	}
 
 	return nil
