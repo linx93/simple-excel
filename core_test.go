@@ -3,8 +3,6 @@ package simple_excel
 import (
 	"fmt"
 	"github.com/linx93/simple-excel/sample"
-	"github.com/xuri/excelize/v2"
-	"log"
 	"reflect"
 	"testing"
 )
@@ -51,7 +49,7 @@ func Test_buildHeaders(t *testing.T) {
 	}
 
 	lastLeafNode := 0
-	leafNodeMap := make(map[string]int, 0)
+	leafNodeMap := make(map[string]*Header, 0)
 	for i := 0; i < len(headers); i++ {
 		//设置叶子节点数
 		setDepth(headers[i], maxDepthVal)
@@ -87,32 +85,4 @@ func Test_maxLeafNode(t *testing.T) {
 	for _, h := range headers {
 		t.Logf("%#v\n", *h)
 	}
-}
-
-func TestBuildTabHead(t *testing.T) {
-	tabHead, _, err := BuildTabHead[sample.Student]()
-	if err != nil {
-		t.Fatalf("%s", err.Error())
-	}
-
-	for _, h := range tabHead {
-		t.Logf("%#v", *h)
-	}
-
-	f := excelize.NewFile()
-	defer func() {
-		if err := f.Close(); err != nil {
-			fmt.Println(err)
-		}
-	}()
-
-	for _, h := range tabHead {
-		err1 := writeHeader(f, *h)
-		if err1 != nil {
-			log.Fatalf(err1.Error())
-		}
-	}
-	f.SaveAs("./linx35.xlsx")
-
-	t.Log("success")
 }

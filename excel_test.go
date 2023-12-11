@@ -20,9 +20,9 @@ func Test_writeHeader(t *testing.T) {
 		t.Fatalf("buildHeaders:%s\n", err.Error())
 	}
 	for _, h := range headers {
-		err := writeHeader(f, *h)
-		if err != nil {
-			log.Fatalf(err.Error())
+		err1 := writeHeader(f, *h, "Sheet1")
+		if err1 != nil {
+			log.Fatalf(err1.Error())
 		}
 	}
 
@@ -32,6 +32,8 @@ func Test_writeHeader(t *testing.T) {
 }
 
 func TestCreateTab(t *testing.T) {
+	savePath := "./test5.xlsx"
+
 	stu := sample.Student{
 		Hobby: sample.Hobby{
 			Sing:       "0分",
@@ -46,10 +48,10 @@ func TestCreateTab(t *testing.T) {
 				Chemical: "80",
 				Biology:  "80",
 			},
-			Chinese:  "60",
-			Math:     "100",
-			English:  "0",
-			CompSub1: sample.CompSub1{}, /*sample.CompSub1{
+			Chinese: "60",
+			Math:    "100",
+			English: "0",
+			CompSub1: sample.CompSub1{
 				Politics: "40",
 				Choose: sample.Choose{
 					ChooseA: "40",
@@ -62,17 +64,28 @@ func TestCreateTab(t *testing.T) {
 				},
 				History:   "40",
 				Geography: "80",
-			},*/
+			},
 			//GymClass: "80",
 		},
 		Height: 170,
 	}
 
-	stus := []sample.Student{stu, stu, stu, stu, stu, stu, stu, stu, stu, stu, stu, stu}
+	data := []sample.Student{stu, stu, stu, stu, stu, stu, stu, stu, stu, stu, stu, stu}
+	sheetStu1 := NewSheet("学生1", data)
+	sheetStu2 := NewSheet("学生2", data)
+	writerStu := NewExcelWriter[sample.Student](savePath)
+	writerStu.AddSheet(sheetStu1, sheetStu2)
+	writerStu.CreateTab()
 
-	err := CreateTab[sample.Student]("./linx-student9.xlsx", stus)
-	if err != nil {
-		t.Fatalf("CreateTab失败:%s", err.Error())
-	}
+	//继续追加写入school数据
+
+	file, _ := excelize.OpenFile(savePath)
+	school := sample.School{SType: "好学校", SName: "某某中学"}
+	schData := []sample.School{school}
+	sheetSch := NewSheet("学校", schData)
+	writerSch := NewExcelWriter[sample.School](savePath, file)
+	writerSch.AddSheet(sheetSch)
+	writerSch.CreateTab()
+
 	t.Log("success")
 }

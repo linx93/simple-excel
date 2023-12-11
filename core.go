@@ -45,6 +45,7 @@ type Header struct {
 	TreeLayer   int      `json:"treeLayer"`   //树的层,0开始
 	TreeDepth   int      `json:"treeDepth"`   //树的深度
 	LeafNode    int      `json:"leafNode"`    //叶子节点总数
+	XlsxTag     XlsxTag  `json:"xlsxTag"`     //标签配置
 }
 
 type XlsxTag struct {
@@ -58,128 +59,7 @@ type XlsxTag struct {
 	Cols     int    `json:"cols"`     //表头占用多少列，默认1
 }
 
-// 样例数据
-func ss() []Header {
-	hs := []Header{
-		{
-			Content:     "名字",
-			FieldName:   "name",
-			PFieldName:  "",
-			ColIndex:    0,
-			HasChildren: false,
-			TreeLayer:   0,
-			TreeDepth:   3,
-			LeafNode:    1,
-		},
-		{
-			Content:    "科目",
-			FieldName:  "sub",
-			PFieldName: "",
-			ColIndex:   1,
-			Children: []Header{
-				{
-					Content:     "语文",
-					FieldName:   "chinese",
-					PFieldName:  "sub",
-					ColIndex:    1 + 0,
-					HasChildren: false,
-					TreeLayer:   0 + 1,
-					TreeDepth:   3 - 1,
-					LeafNode:    1,
-				},
-				{
-					Content:     "数学",
-					FieldName:   "math",
-					PFieldName:  "sub",
-					ColIndex:    1 + 1,
-					HasChildren: false,
-					TreeLayer:   0 + 1,
-					TreeDepth:   3 - 1,
-					LeafNode:    1,
-				},
-				{
-					Content:     "英语",
-					FieldName:   "english",
-					PFieldName:  "sub",
-					ColIndex:    1 + 2,
-					HasChildren: false,
-					TreeLayer:   0 + 1,
-					TreeDepth:   3 - 1,
-					LeafNode:    1,
-				},
-				{
-					Content:    "理综",
-					FieldName:  "compSub",
-					PFieldName: "sub",
-					ColIndex:   1 + 3,
-					Children: []Header{
-						{
-							Content:     "物理",
-							FieldName:   "physics",
-							PFieldName:  "compSub",
-							ColIndex:    1 + 3 + 0,
-							HasChildren: false,
-							TreeLayer:   0 + 1 + 1,
-							TreeDepth:   3 - 2,
-							LeafNode:    1,
-						},
-						{
-							Content:     "化学",
-							FieldName:   "chemical",
-							PFieldName:  "compSub",
-							ColIndex:    1 + 3 + 1,
-							HasChildren: false,
-							TreeLayer:   0 + 1 + 1,
-							TreeDepth:   3 - 2,
-							LeafNode:    1,
-						},
-						{
-							Content:     "生物",
-							FieldName:   "biology",
-							PFieldName:  "compSub",
-							ColIndex:    1 + 3 + 2,
-							HasChildren: false,
-							TreeLayer:   0 + 1 + 1,
-							TreeDepth:   3 - 2,
-							LeafNode:    1,
-						},
-					},
-					HasChildren: true,
-					TreeLayer:   0 + 1,
-					TreeDepth:   3 - 1,
-					LeafNode:    3,
-				},
-				{
-					Content:     "体育",
-					FieldName:   "sports",
-					PFieldName:  "sub",
-					ColIndex:    1 + 6,
-					HasChildren: false,
-					TreeLayer:   0 + 1,
-					TreeDepth:   2,
-					LeafNode:    1,
-				},
-			},
-			HasChildren: true,
-			TreeLayer:   0,
-			TreeDepth:   3,
-			LeafNode:    7,
-		},
-		{
-			Content:     "身高",
-			FieldName:   "height",
-			PFieldName:  "",
-			ColIndex:    8,
-			HasChildren: false,
-			TreeLayer:   0,
-			TreeDepth:   3,
-			LeafNode:    1,
-		},
-	}
-	return hs
-}
-
-func BuildTabHead[T any]() ([]*Header, *Cols, error) {
+func buildTabHead[T any]() ([]*Header, *Cols, error) {
 
 	cs := Cols{}
 	//生成树
@@ -197,7 +77,7 @@ func BuildTabHead[T any]() ([]*Header, *Cols, error) {
 		}
 	}
 
-	leafNodeMap := make(map[string]int, 0)
+	leafNodeMap := make(map[string]*Header, 0)
 	lastLeafNode := 0
 
 	for i := 0; i < len(headers); i++ {
@@ -334,6 +214,7 @@ func buildHeader(field reflect.StructField, pFieldName string, pTreeLayer int) (
 		ColIndex:   xlsxTag.Index,
 		Children:   make([]Header, 0),
 		TreeLayer:  pTreeLayer,
+		XlsxTag:    *xlsxTag,
 	}
 
 	if field.Type.Kind() == reflect.Struct {
@@ -411,7 +292,7 @@ func setDepth(tree *Header, maxDepth int) {
 }
 
 // 设置colIndex
-func setColIndex(tree *Header, startColIndex int, leafNodeMap map[string]int) (int, map[string]int) {
+func setColIndex(tree *Header, startColIndex int, leafNodeMap map[string]*Header) (int, map[string]*Header) {
 	tree.ColIndex = startColIndex
 
 	//前面存在的兄弟节点中存在有子树的
@@ -420,7 +301,7 @@ func setColIndex(tree *Header, startColIndex int, leafNodeMap map[string]int) (i
 
 	//leafNodeMap是叶子节点集 key是fieldName => value是colIndex
 	if !tree.HasChildren {
-		leafNodeMap[tree.FieldName] = tree.ColIndex
+		leafNodeMap[tree.FieldName] = tree
 	}
 
 	if tree.HasChildren {
