@@ -51,7 +51,7 @@ func NewExcelReader[T any](readPath string, sheetNames ...string) (*ExcelReader[
 }
 
 func (er *ExcelReader[T]) Read() (map[string][]T, error) {
-
+	m := make(map[string][]T, 0)
 	for _, st := range er.sht {
 		sheetName := st.Sheet.name
 		leafNodes := st.Sheet.cols.LeafNodes
@@ -92,21 +92,21 @@ func (er *ExcelReader[T]) Read() (map[string][]T, error) {
 			//log.Println("   colVals=", colVals)
 			t := new(T)
 			tv := reflect.ValueOf(t)
-			//tf := reflect.TypeOf(*t)
 			for _, leafNode := range leafNodes {
 				//log.Println("   Field=", leafNode.Content, "   setColVal=", colVals[leafNode.ColIndex], "   ColIndex=", leafNode.ColIndex)
-				setNestedStructValue(tv.Elem(), leafNode.FieldName, colVals[leafNode.ColIndex])
+				setStruct(tv.Elem(), leafNode.FieldName, colVals[leafNode.ColIndex])
 			}
 			ts = append(ts, *t)
 		}
 
 		st.data = ts
+		m[sheetName] = ts
 	}
 
-	return nil, nil
+	return m, nil
 }
 
-func set(field reflect.Value, xlsxValue string) {
+func setVal(field reflect.Value, xlsxValue string) {
 	switch field.Type().Kind() {
 	case reflect.String:
 		field.SetString(xlsxValue)
@@ -143,34 +143,33 @@ func set(field reflect.Value, xlsxValue string) {
 	}
 }
 
-func setNestedStructValue(val reflect.Value, fieldName string, setV string) {
+func setStruct(val reflect.Value, fieldName string, setV string) {
 	switch val.Kind() {
 	case reflect.Ptr:
 		if val.IsNil() {
 			val.Set(reflect.New(val.Type().Elem()))
 		}
-		setNestedStructValue(val.Elem(), fieldName, setV)
+		setStruct(val.Elem(), fieldName, setV)
 	case reflect.Struct:
 		fieldVal := val.FieldByName(fieldName)
 		if fieldVal.IsValid() {
 			//fieldVal.Set(reflect.ValueOf(setV).Convert(fieldVal.Type()))
-			set(fieldVal, setV)
+			setVal(fieldVal, setV)
 			return
 		} else {
 			for i := 0; i < val.NumField(); i++ {
 				field := val.Field(i)
-				setNestedStructValue(field, fieldName, setV)
+				setStruct(field, fieldName, setV)
 			}
 		}
 
 	case reflect.Slice:
 		for i := 0; i < val.Len(); i++ {
 			elem := val.Index(i)
-			setNestedStructValue(elem, fieldName, setV)
+			setStruct(elem, fieldName, setV)
 		}
 	case reflect.String:
-		//_, b := val.Type().FieldByName(fieldName)
-		log.Println(val.String())
+		//log.Println(val.Type(), "  fieldName=", fieldName, " val=", setV)
 
 	}
 }

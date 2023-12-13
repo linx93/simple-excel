@@ -6,7 +6,7 @@ import (
 )
 
 func TestExcelReader_Read(t *testing.T) {
-	reader, err := NewExcelReader[sample.Student]("D:\\code\\go\\linx\\simple-excel\\test5.xlsx")
+	reader, err := NewExcelReader[sample.Student]("./test5.xlsx")
 	if err != nil {
 		t.Fatalf("err:%s", err.Error())
 	}
