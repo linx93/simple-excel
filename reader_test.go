@@ -6,7 +6,7 @@ import (
 )
 
 func TestExcelReader_Read(t *testing.T) {
-	reader, err := NewExcelReader[sample.Student]("./test5.xlsx")
+	reader, err := NewExcelReader[sample.IntoRow]("./7-9事故与非事故已付明细 1.xlsx")
 	if err != nil {
 		t.Fatalf("err:%s", err.Error())
 	}
