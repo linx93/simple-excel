@@ -10,9 +10,11 @@ func TestExcelReader_Read(t *testing.T) {
 	if err != nil {
 		t.Fatalf("err:%s", err.Error())
 	}
+
 	read, err := reader.Read()
 	if err != nil {
 		t.Fatalf("读err:%s", err.Error())
 	}
+
 	t.Log(read)
 }
