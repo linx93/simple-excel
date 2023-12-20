@@ -4,8 +4,8 @@ type Student struct {
 	Name   string `json:"name" xlsx:"head:名字;merge:true;defValue:无名"` //名字
 	Hobby  Hobby  `json:"hobby" xlsx:"head:爱好;"`                      //爱好
 	Weight int    `json:"weight" xlsx:"head:体重"`
-	Age    int    `json:"age" xlsx:"ignore:true"` //年龄
-	Sub    Sub    `json:"sub" xlsx:"head:科目"`     //科目
+	Age    int    `json:"age" xlsx:"ignore:true;head:年龄"` //年龄
+	Sub    Sub    `json:"sub" xlsx:"head:科目"`             //科目
 	Height int    `json:"height" xlsx:"head:身高"`
 	//我的深度=我的兄弟的最大深度
 }

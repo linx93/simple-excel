@@ -64,15 +64,45 @@ func (er *ExcelReader[T]) Read() (map[string][]T, error) {
 
 		rowIndex := 0
 		skipHead := er.sht[0].Sheet.cols.MaxTreeDepth
+		nodes := er.sht[0].Sheet.cols.LeafNodes
 
 		ts := make([]T, 0)
+
+		headIndex := make(map[string]int)
 
 		for rows.Next() {
 			rowIndex++
 			if rowIndex <= skipHead {
+				//识别表头
+				tabHead, err1 := rows.Columns()
+				if err1 != nil {
+					log.Printf("读取工作区%s的行出错: %s", sheetName, err1)
+					continue
+				}
+
+				for _, header := range nodes {
+					for inx, h := range tabHead {
+						//excel中的头和实体中标签中定义的头相等
+						if header.Content == h {
+							if header.ColIndex <= len(nodes) {
+								headIndex[header.FieldName] = inx
+							} else {
+								//可以打印一下
+							}
+						}
+					}
+				}
+
 				//跳过表头
 				continue
 			}
+
+			//判断头长度，作为依据
+			if len(headIndex) != len(nodes) {
+				return nil, fmt.Errorf("请选择正确模板的excel文件")
+			}
+
+			//下面开始读取数据
 
 			colVals, err1 := rows.Columns()
 			if err1 != nil {
@@ -92,9 +122,9 @@ func (er *ExcelReader[T]) Read() (map[string][]T, error) {
 			//log.Println("   colVals=", colVals)
 			t := new(T)
 			tv := reflect.ValueOf(t)
-			for _, leafNode := range leafNodes {
+			for fieldName, colIndex := range headIndex {
 				//log.Println("   Field=", leafNode.Content, "   setColVal=", colVals[leafNode.ColIndex], "   ColIndex=", leafNode.ColIndex)
-				setStruct(tv.Elem(), leafNode.FieldName, colVals[leafNode.ColIndex])
+				setStruct(tv.Elem(), fieldName, colVals[colIndex])
 			}
 			ts = append(ts, *t)
 		}
