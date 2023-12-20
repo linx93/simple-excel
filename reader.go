@@ -97,7 +97,7 @@ func (er *ExcelReader[T]) Read() (map[string][]T, error) {
 				continue
 			}
 
-			//判断头长度，作为依据
+			//判断头长度，不一致直接结算不读取
 			if len(headIndex) != len(nodes) {
 				return nil, fmt.Errorf("请选择正确模板的excel文件")
 			}
